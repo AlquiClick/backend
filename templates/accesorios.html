@@ -1,0 +1,32 @@
+{% extends 'layout.html' %}
+{% block title %}
+    <h2>CRUD de Accesorios</h2>
+{% endblock %}
+{% block text %}
+    <form action="" method="post">
+        Tipo: <input type="text" name="tipo" class="form-control" placeholder="Tipo de accesorio">
+        <button type="submit" class="btn btn-success">Enviar</button>
+    </form>
+
+    <ul>
+    {% for accesorio in accesorios %}
+        <li>
+            {{ accesorio.tipo }}
+            <button onclick="document.getElementById('editForm{{ accesorio.id }}').style.display='block'" class="btn btn-primary btn-sm">Editar</button>
+
+            <div id="editForm{{ accesorio.id }}" style="display:none;">
+                <form action="/accesorios/{{ accesorio.id }}" method="post">
+                    <input type="hidden" name="_method" value="PUT">
+                    Tipo: <input type="text" name="tipo" value="{{ accesorio.tipo }}" class="form-control">
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </form>
+            </div>
+
+            <form action="/accesorios/{{ accesorio.id }}" method="post" style="display:inline;">
+                <input type="hidden" name="_method" value="DELETE">
+                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+            </form>
+        </li>
+    {% endfor %}
+    </ul>
+{% endblock %}

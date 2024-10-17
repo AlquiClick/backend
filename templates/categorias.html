@@ -1,0 +1,32 @@
+{% extends 'layout.html' %}
+{% block title %}
+    <h2>CRUD de Categorías</h2>
+{% endblock %}
+{% block text %}
+    <form action="" method="post">
+        Nombre: <input type="text" name="nombre" class="form-control" placeholder="Nombre de la categoría">
+        <button type="submit" class="btn btn-success">Enviar</button>
+    </form>
+
+    <ul>
+    {% for categoria in categorias %}
+        <li>
+            {{ categoria.nombre }}
+            <button onclick="document.getElementById('editForm{{ categoria.id }}').style.display='block'" class="btn btn-primary btn-sm">Editar</button>
+
+            <div id="editForm{{ categoria.id }}" style="display:none;">
+                <form action="/categorias/{{ categoria.id }}" method="post">
+                    <input type="hidden" name="_method" value="PUT">
+                    <input type="text" name="nombre" value="{{ categoria.nombre }}" class="form-control">
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </form>
+            </div>
+
+            <form action="/categorias/{{ categoria.id }}" method="post" style="display:inline;">
+                <input type="hidden" name="_method" value="DELETE">
+                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+            </form>
+        </li>
+    {% endfor %}
+    </ul>
+{% endblock %}

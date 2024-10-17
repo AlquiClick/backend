@@ -1,0 +1,176 @@
+{% extends 'layout.html' %}
+{% block title %}
+    <h2>CRUD de Equipos</h2>
+{% endblock %}
+{% block text %}
+    <form action="" method="post">
+        Nombre: <input type="text" name="nombre" class="form-control" placeholder="nombre del equipo">
+        Modelo: <select name="modelo_id" class="form-control">
+            {% for modelo in modelos %}
+                <option value="{{ modelo.id }}">{{ modelo.nombre }}</option>
+            {% endfor %}
+        </select>
+        Categoria: <select name="categoria_id" class="form-control">
+            {% for categoria in categorias %}
+                <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+            {% endfor %}
+        </select>
+        Costo: <input type="text" name="costo" class="form-control" placeholder="agrega el costo">
+        <button type="submit" class="btn btn-success">Enviar</button>
+    </form>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Modelo</th>
+                <th>Categoria</th>
+                <th>Costo</th>
+                <th>Editar</th>
+                <th>Borrar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for equipo in equipos %}
+                <tr>
+                    <td>{{ equipo.nombre }}</td>
+                    <td>{{ equipo.modelo.nombre }}</td>
+                    <td>{{ equipo.categoria.nombre }}</td>
+                    <td>{{ equipo.costo }}</td>
+                    <td><button onclick="showEditModal('{{ equipo.id }}', '{{ equipo.nombre }}', '{{ equipo.modelo.id }}', '{{ equipo.categoria.id }}', '{{ equipo.costo }}')" class="btn btn-primary btn-sm">Editar</button></td>
+                    <td><button onclick="deleteEquipo('{{ equipo.id }}')" class="btn btn-danger btn-sm">Borrar</button></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div id="editModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Editar equipo</h2>
+            <input type="text" id="editNombre" class="form-control">
+            <select id="editModeloId" class="form-control">
+                {% for modelo in modelos %}
+                    <option value="{{ modelo.id }}">{{ modelo.nombre }}</option>
+                {% endfor %}
+            </select>
+            <select id="editCategoriaId" class="form-control">
+                {% for categoria in categorias %}
+                    <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                {% endfor %}
+            </select>
+            <input type="number" id="editCosto" class="form-control">
+            <button onclick="updateEquipo()" class="btn btn-primary">Guardar</button>
+        </div>
+    </div>
+    <script>
+        let currentModeloId;
+    
+        function deleteEquipo(id) {
+            if (confirm('¿Estás seguro de que quieres borrar este equipo?')) {
+                fetch('/equipos', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ id: id })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    window.location.href = '/equipos';
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    alert('Hubo un error al borrar el modelo');
+                });
+            }
+        }
+    
+        function showEditModal(id, nombre, modelo_id, categoria_id, costo) {
+            currentModeloId = id;
+            document.getElementById('editNombre').value = nombre;
+            document.getElementById('editModeloId').value = modelo_id;
+            document.getElementById('editCategoriaId').value = categoria_id;
+            document.getElementById('editCosto').value = costo;
+            document.getElementById('editModal').style.display = 'block';
+        }
+    
+        function updateEquipo() {
+            const nuevoNombre = document.getElementById('editNombre').value;
+            const nuevoModelo = document.getElementById('editModeloId').value;
+            const nuevaCategoria = document.getElementById('editCategoriaId').value;
+            const nuevoCosto = document.getElementById('editCosto').value;
+            fetch('/equipos', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id: currentModeloId,
+                    nombre: nuevoNombre,
+                    modelo_id: nuevoModelo,
+                    categoria_id: nuevaCategoria,
+                    costo: nuevoCosto
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                window.location.href = '/equipos';
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('Hubo un error al actualizar el modelo');
+            });
+        }
+    
+        // Cerrar el modal
+        document.querySelector('.close').onclick = function() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+    
+        // Cerrar el modal si se hace clic fuera de él
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('editModal')) {
+                document.getElementById('editModal').style.display = 'none';
+            }
+        }
+    </script>
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+{% endblock %}
+

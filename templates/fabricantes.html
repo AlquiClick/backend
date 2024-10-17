@@ -1,0 +1,144 @@
+{% extends 'layout.html' %}
+{% block title %}
+    <h2>CRUD de Fabricantes</h2>
+{% endblock %}
+{% block text %}
+    <form action="" method="post">
+        Nombre: <input type="text" name="nombre" class="form-control" placeholder="nombre del fabricante">
+        Pais: <input type="text" name="pais_origen" class="form-control" placeholder="pais de origen del fabricante">
+        <button type="submit" class="btn btn-success">Enviar</button>
+    </form>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Descripción</th>
+                <th>Pais</th>
+                <th>Editar</th>
+                <th>Borrar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fabricante in fabricantes%}
+                <tr>
+                    <td>{{fabricante.nombre}}</td>
+                    <td>{{fabricante.pais_origen}}</td>
+                    <td><button onclick="showEditModal('{{ fabricante.id }}', '{{ fabricante.nombre }}', '{{ fabricante.pais_origen }}')" class="btn btn-primary btn-sm">Editar</button></td>
+                    <td><button onclick="deleteFabricante('{{ fabricante.id }}')" class="btn btn-danger btn-sm">Borrar</button></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div id="editModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Editar Fabricante</h2>
+            <input type="text" id="editNombre" class="form-control">
+            <input type="text" id="editPaisOrigen" class="form-control">
+            <button onclick="updateFabricante()" class="btn btn-primary">Guardar</button>
+        </div>
+    </div>
+    <script>
+        let currentFabricantesId;
+    
+        function deleteFabricante(id) {
+            if (confirm('¿Estás seguro de que quieres borrar este fabricante?')) {
+                fetch('/fabricantes', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ id: id })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    window.location.href = '/fabricantes';
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    alert('Hubo un error al borrar el fabricante');
+                });
+            }
+        }
+    
+        function showEditModal(id, nombre, paisOrigen) {
+            currentFabricantesId = id;
+            document.getElementById('editNombre').value = nombre;
+            document.getElementById('editPaisOrigen').value = paisOrigen;
+            document.getElementById('editModal').style.display = 'block';
+        }
+    
+        function updateFabricante() {
+            const nuevoNombre = document.getElementById('editNombre').value;
+            const nuevoPaisOrigen = document.getElementById('editPaisOrigen').value;
+            fetch('/fabricantes', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ id: currentFabricantesId, nombre: nuevoNombre, paisOrigen: nuevoPaisOrigen })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                window.location.href = '/fabricantes';
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('Hubo un error al actualizar la fabricantes');
+            });
+        }
+    
+        // Cerrar el modal
+        document.querySelector('.close').onclick = function() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+    
+        // Cerrar el modal si se hace clic fuera de él
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('editModal')) {
+                document.getElementById('editModal').style.display = 'none';
+            }
+        }
+    
+        </script>
+    
+        <style>
+            .modal {
+                display: none;
+                position: fixed;
+                z-index: 1;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                overflow: auto;
+                background-color: rgb(0,0,0);
+                background-color: rgba(0,0,0,0.4);
+            }
+    
+            .modal-content {
+                background-color: #fefefe;
+                margin: 15% auto;
+                padding: 20px;
+                border: 1px solid #888;
+                width: 80%;
+            }
+    
+            .close {
+                color: #aaa;
+                float: right;
+                font-size: 28px;
+                font-weight: bold;
+            }
+    
+            .close:hover,
+            .close:focus {
+                color: black;
+                text-decoration: none;
+                cursor: pointer;
+            }
+        </style>
+{% endblock %}
+
