@@ -81,3 +81,36 @@ def login():
          return jsonify({
             "message": 'Algo malio sal',
         }), 404
+    
+@auth_bp.route("/register", methods=['POST'])
+def register():
+
+    data = request.get_json()
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+            
+    passwordHash = generate_password_hash(
+        password=password,
+        method='pbkdf2',
+        salt_length=8
+    )
+    try:
+        nuevo_user = User(
+            username=username,
+            email=email,
+            password=passwordHash,
+            is_admin=True,
+            is_active=True
+        )
+
+        db.session.add(nuevo_user)
+        db.session.commit()
+
+        return jsonify({
+            "message": f'User {username} is created',
+        }), 201
+    except:
+        return jsonify({
+            "message": 'Algo malio sal',
+        }), 404
