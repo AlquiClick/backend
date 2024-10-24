@@ -12,7 +12,7 @@ Este es un proyecto básico de Flask que incluye migraciones de base de datos co
 
 1. **Instalar las dependencias:**
    ```bash
-   pip install -r requierements.txt
+   pip install -r requirements.txt
 
 2. **Inicializar el servidor:**
   Correr XAMPP o MAMP en la dirección del proyecto.
