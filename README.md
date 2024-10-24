@@ -20,7 +20,7 @@ Este es un proyecto básico de Flask que incluye migraciones de base de datos co
 3. **Crear base de datos:**
   Ingresar a phpMyAdmin o desde la terminal y crear la base de datos con el nombre:
    ```bash
-   flask_phone_shop
+   alquiclick
 
 4. **Inicializar la base de datos y correr las migraciones:**
    ```bash
