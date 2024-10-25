@@ -18,7 +18,6 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route("/users", methods=['POST', 'GET'])
 @jwt_required()
 def user():
-    
     additional_data = get_jwt()
     admin = additional_data.get('is_admin')
 
@@ -26,6 +25,7 @@ def user():
         if admin:    
             data = request.get_json()
             username = data.get('username')
+            email = data.get('email')
             password = data.get('password')
             
             passwordHash = generate_password_hash(
@@ -36,6 +36,7 @@ def user():
             try:
                 nuevo_user = User(
                     username=username,
+                    email=email,
                     password=passwordHash,
                     is_active=1
                 )
@@ -75,7 +76,8 @@ def login():
             )
         ) 
         return jsonify({
-            "message": f'Login exitoso para {username}, Token: {access_token}',
+            "message": f'Login exitoso {username}',
+            "token": f'{access_token}',
         }), 201
     else:
          return jsonify({
