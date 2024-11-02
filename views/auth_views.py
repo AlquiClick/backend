@@ -14,8 +14,164 @@ from models import User, Person
 from schemas import UserSchema, MinimalUserSchema
 
 auth_bp = Blueprint('auth', __name__)
+
+@auth_bp.route("/users", methods=['POST', 'GET'])
+@jwt_required()
+def user():
+    """
+    List users or create user
+    ---
+    security:
+      - Bearer: []
+    parameters:
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+        description: "JWT Token with 'Bearer ' prefix"
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            username:
+              type: string
+              description: The username for the new user
+            email:
+              type: string
+              description: The email address for the new user
+            password:
+              type: string
+              description: The password for the new user
+          required:
+            - username
+            - email
+            - password
+    get:
+      description: List all users
+      responses:
+        200:
+          description: List of users
+          schema:
+            type: array
+            items:
+              oneOf:
+                - type: object
+                  properties:
+                    id:
+                      type: integer
+                    username:
+                      type: string
+                    is_admin:
+                      type: boolean
+                    password:
+                      type: string
+                - type: object
+                  properties:
+                    username:
+                      type: string
+    post:
+      description: Create a new user
+      responses:
+        201:
+          description: User created
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "User {username} is created"
+        403:
+          description: Unauthorized
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Unauthorized access"
+    """
+    additional_data = get_jwt()
+    admin = additional_data.get('is_admin')
+
+    if request.method == 'POST':
+        if admin:    
+            data = request.get_json()
+            username = data.get('username')
+            email = data.get('email')
+            password = data.get('password')
+            
+            passwordHash = generate_password_hash(
+                password=password,
+                method='pbkdf2',
+                salt_length=8
+            )
+            try:
+                nuevo_user = User(
+                    username=username,
+                    email=email,
+                    password=passwordHash,
+                    is_active=1
+                )
+
+                db.session.add(nuevo_user)
+                db.session.commit()
+
+                return jsonify({
+                    "message": f'User {username} is created',
+                }), 201
+            except:
+                return jsonify({
+                    "message": 'Algo malio sal',
+                }), 404
+
+    users = User.query.all()
+
+    if admin:
+        return UserSchema().dump(users, many=True)
+    return MinimalUserSchema().dump(users, many=True)
+    
 @auth_bp.route("/login", methods=['POST'])
 def login():
+    """
+    User login
+    ---
+    parameters:
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+        description: |
+          Basic authorization header. Format: 'Basic {base64(username:password)}'.
+          To encode the credentials, you can use the following command:
+          ```
+          echo -n "username:password" | base64
+          ```
+          Example:
+          ```
+          echo -n "nuevo_usuario:password123" | base64
+          ```
+    responses:
+      201:
+        description: Login successful
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Login exitoso nuevo_usuario"
+            token:
+              type: string
+              example: "JWT token string"
+      404:
+        description: Invalid credentials
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Algo malio sal"
+    """
     data = request.authorization
     username = data.username
     password = data.password
@@ -41,6 +197,47 @@ def login():
 
 @auth_bp.route("/register", methods=['POST'])
 def register():
+    """
+    Register a new user
+    ---
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            username:
+              type: string
+              description: The username for the new user
+            email:
+              type: string
+              description: The email address for the new user
+            password:
+              type: string
+              description: The password for the new user
+          required:
+            - username
+            - email
+            - password
+    responses:
+      201:
+        description: User successfully created
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "User {username} is created"
+      404:
+        description: Error occurred while creating user
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Algo malio sal"
+    """
     data = request.get_json()
 
     username = data.get('username')
