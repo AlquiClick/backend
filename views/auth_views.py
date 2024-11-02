@@ -1,8 +1,6 @@
 from flask import Blueprint, request, jsonify
 from datetime import timedelta
 from flask_jwt_extended import (
-    get_jwt,
-    jwt_required,
     create_access_token,
 )
 from werkzeug.security import (
@@ -11,126 +9,9 @@ from werkzeug.security import (
 )
 from app import db
 from models import User, Person
-from schemas import UserSchema, MinimalUserSchema
 
 auth_bp = Blueprint('auth', __name__)
 
-@auth_bp.route("/users", methods=['POST', 'GET'])
-@jwt_required()
-def user():
-    """
-    List users or create user
-    ---
-    security:
-      - Bearer: []
-    parameters:
-      - name: Authorization
-        in: header
-        type: string
-        required: true
-        description: "JWT Token with 'Bearer ' prefix"
-      - in: body
-        name: body
-        required: true
-        schema:
-          type: object
-          properties:
-            username:
-              type: string
-              description: The username for the new user
-            email:
-              type: string
-              description: The email address for the new user
-            password:
-              type: string
-              description: The password for the new user
-          required:
-            - username
-            - email
-            - password
-    get:
-      description: List all users
-      responses:
-        200:
-          description: List of users
-          schema:
-            type: array
-            items:
-              oneOf:
-                - type: object
-                  properties:
-                    id:
-                      type: integer
-                    username:
-                      type: string
-                    is_admin:
-                      type: boolean
-                    password:
-                      type: string
-                - type: object
-                  properties:
-                    username:
-                      type: string
-    post:
-      description: Create a new user
-      responses:
-        201:
-          description: User created
-          schema:
-            type: object
-            properties:
-              message:
-                type: string
-                example: "User {username} is created"
-        403:
-          description: Unauthorized
-          schema:
-            type: object
-            properties:
-              message:
-                type: string
-                example: "Unauthorized access"
-    """
-    additional_data = get_jwt()
-    admin = additional_data.get('is_admin')
-
-    if request.method == 'POST':
-        if admin:    
-            data = request.get_json()
-            username = data.get('username')
-            email = data.get('email')
-            password = data.get('password')
-            
-            passwordHash = generate_password_hash(
-                password=password,
-                method='pbkdf2',
-                salt_length=8
-            )
-            try:
-                nuevo_user = User(
-                    username=username,
-                    email=email,
-                    password=passwordHash,
-                    is_active=1
-                )
-
-                db.session.add(nuevo_user)
-                db.session.commit()
-
-                return jsonify({
-                    "message": f'User {username} is created',
-                }), 201
-            except:
-                return jsonify({
-                    "message": 'Algo malio sal',
-                }), 404
-
-    users = User.query.all()
-
-    if admin:
-        return UserSchema().dump(users, many=True)
-    return MinimalUserSchema().dump(users, many=True)
-    
 @auth_bp.route("/login", methods=['POST'])
 def login():
     """
@@ -216,10 +97,23 @@ def register():
             password:
               type: string
               description: The password for the new user
+            first_name:
+              type: string
+              description: The first name for the new user
+            last_name:
+              type: string
+              description: The last name for the new user
+            date_of_birth:
+              type: string
+              format: date
+              description: "The date of birth for the new user in format YYYY-MM-DD"
           required:
             - username
             - email
             - password
+            - first_name
+            - last_name
+            - date_of_birth
     responses:
       201:
         description: User successfully created
