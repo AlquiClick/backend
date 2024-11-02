@@ -18,7 +18,7 @@ default_bp = Blueprint('default', __name__)
 # @jwt_required()
 def properties():
     if request.method == 'POST':
-        return {};
+        return {}
     if request.method == 'GET':
         mock_property = [
             {

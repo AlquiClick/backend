@@ -33,23 +33,6 @@ class PropertySchema(ma.SQLAlchemySchema):
     owner_id = fields.Int(required=True)
     active = fields.Bool()
 
-class PublicationSchema(ma.SQLAlchemySchema):
-    class Meta:
-        model = Publication
-        load_instance = True
-
-    id = fields.Int(dump_only=True)
-    property_id = fields.Int(required=True)
-    image_id = fields.Int(required=True)
-    user_id = fields.Int(required=True)
-    title = fields.Str(required=True)
-    description = fields.Str()
-    price_shown = fields.Decimal(as_string=True)
-    publication_status_id = fields.Int(required=True)
-    publish_date = fields.Date()
-    expiry_date = fields.Date()
-    status = fields.Str()
-
 class ImageSchema(ma.SQLAlchemySchema):
     class Meta:
         model = Image
@@ -58,6 +41,27 @@ class ImageSchema(ma.SQLAlchemySchema):
     id = fields.Int(dump_only=True)
     name = fields.Str(required=True)
     url = fields.Str(required=True)
+
+class PublicationSchema(ma.SQLAlchemySchema):
+    class Meta:
+        model = Publication
+        load_instance = True
+
+    id = fields.Int(dump_only=True)
+    property_id = fields.Int()
+    image_id = fields.Int()
+    user_id = fields.Int()
+    title = fields.Str()
+    description = fields.Str()
+    price_shown = fields.Decimal(as_string=True)
+    publication_status_id = fields.Int()
+    publish_date = fields.Date()
+    expiry_date = fields.Date()
+    status = fields.Str()
+
+    # Campos relacionados
+    property = fields.Nested(PropertySchema)
+    image = fields.Nested(ImageSchema)
 
 class ContractSchema(ma.SQLAlchemySchema):
     id = fields.Int(dump_only=True)

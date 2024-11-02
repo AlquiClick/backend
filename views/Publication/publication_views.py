@@ -64,7 +64,7 @@ def get_publications():
                 type: string
                 description: The status of the publication (e.g., 'active')
     """
-    publications = Publication.query.all()
+    publications = db.session.query(Publication).join(Publication.property).join(Publication.image).all()
     return PublicationSchema().dump(publications, many=True)
 
 
