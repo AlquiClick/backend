@@ -1,4 +1,5 @@
 from app import db
+from datetime import date
 
 class Person(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -32,4 +33,26 @@ class Property(db.Model):
     active = db.Column(db.Boolean, nullable=True, default=True)
 
     owner = db.relationship('User')
+
+class Image(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+    url = db.Column(db.String(255), nullable=False)
+
+class Publication(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    property_id = db.Column(db.Integer, db.ForeignKey('property.id'), nullable=False)
+    image_id = db.Column(db.Integer, db.ForeignKey('image.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    title = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    price_shown = db.Column(db.Numeric(10, 2), nullable=False)
+    publication_status_id = db.Column(db.Integer, nullable=False)
+    publish_date = db.Column(db.Date, default=date.today)
+    expiry_date = db.Column(db.Date, nullable=True)
+    status = db.Column(db.Enum('active', 'inactive'), nullable=False, default='active')
+
+    property = db.relationship('Property', backref='publications')
+    image = db.relationship('Image', backref='publications')
+    user = db.relationship('User', backref='publications')
 
