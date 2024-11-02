@@ -58,3 +58,13 @@ class ImageSchema(ma.SQLAlchemySchema):
     id = fields.Int(dump_only=True)
     name = fields.Str(required=True)
     url = fields.Str(required=True)
+
+class ContractSchema(ma.SQLAlchemySchema):
+    id = fields.Int(dump_only=True)
+    property_id = fields.Int(required=True)
+    renter_id = fields.Int(required=True)
+    owner_id = fields.Int(required=True)
+    start_date = fields.Date(required=True)
+    end_date = fields.Date(required=True)
+    monthly_rent = fields.Decimal(as_string=True)
+    status = fields.Boolean()

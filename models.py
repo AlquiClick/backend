@@ -56,3 +56,17 @@ class Publication(db.Model):
     image = db.relationship('Image', backref='publications')
     user = db.relationship('User', backref='publications')
 
+class Contract(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    property_id = db.Column(db.Integer, db.ForeignKey('property.id'), nullable=False)
+    renter_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    start_date = db.Column(db.Date, nullable=False)
+    end_date = db.Column(db.Date, nullable=False)
+    monthly_rent = db.Column(db.Numeric(10, 2), nullable=False)
+    status = db.Column(db.Boolean, default=True)
+
+    property = db.relationship('Property', backref='contracts')
+    renter = db.relationship('User', foreign_keys=[renter_id])
+    owner = db.relationship('User', foreign_keys=[owner_id])
+
