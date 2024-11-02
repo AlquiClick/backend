@@ -28,3 +28,13 @@ Este es un proyecto básico de Flask que incluye migraciones de base de datos co
    flask db migrate -m "init migration"
    flask db upgrade
 
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+## Documentacion:
+- Levantar el proyecto 
+  ```bash
+  flask run --reload
+- ingresar a
+  ```bash
+  http://127.0.0.1:5000/apidocs/#/
