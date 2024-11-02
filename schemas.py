@@ -1,5 +1,5 @@
 from app import ma
-from models import User
+from models import User, Property, Publication, Image
 from marshmallow import fields
 
 class UserSchema(ma.SQLAlchemySchema):
@@ -17,23 +17,44 @@ class MinimalUserSchema(ma.SQLAlchemySchema):
 
     username = ma.auto_field()
 
-class PropertySchema(ma.Schema):
-    # class Meta:
-    #     model = Property
-    #     load_instance = True
+class PropertySchema(ma.SQLAlchemySchema):
+    class Meta:
+        model = Property
+        load_instance = True
 
     id = fields.Int(dump_only=True)
+    address = fields.Str(required=True)
+    rooms = fields.Int(required=True)
+    bathrooms = fields.Int(required=True)
+    garage_capacity = fields.Int()
+    year_built = fields.Int()
+    property_status_id = fields.Int()
+    monthly_rent = fields.Decimal(as_string=True)
+    owner_id = fields.Int(required=True)
+    active = fields.Bool()
+
+class PublicationSchema(ma.SQLAlchemySchema):
+    class Meta:
+        model = Publication
+        load_instance = True
+
+    id = fields.Int(dump_only=True)
+    property_id = fields.Int(required=True)
+    image_id = fields.Int(required=True)
+    user_id = fields.Int(required=True)
     title = fields.Str(required=True)
     description = fields.Str()
-    price = fields.Float(required=True)
-    address = fields.Str(required=True)
-    city = fields.Str(required=True)
-    state = fields.Str(required=True)
-    country = fields.Str(required=True)
-    available = fields.Bool()
-    bedrooms = fields.Int(required=True)
-    bathrooms = fields.Int(required=True)
-    square_feet = fields.Int()
-    property_type = fields.Str(required=True)
-    created_at = fields.DateTime(dump_only=True)
-    updated_at = fields.DateTime(dump_only=True)
+    price_shown = fields.Decimal(as_string=True)
+    publication_status_id = fields.Int(required=True)
+    publish_date = fields.Date()
+    expiry_date = fields.Date()
+    status = fields.Str()
+
+class ImageSchema(ma.SQLAlchemySchema):
+    class Meta:
+        model = Image
+        load_instance = True
+
+    id = fields.Int(dump_only=True)
+    name = fields.Str(required=True)
+    url = fields.Str(required=True)
