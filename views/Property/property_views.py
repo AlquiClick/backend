@@ -226,3 +226,84 @@ def create_property():
             "message": "Error al crear la propiedad",
             "error": str(e)
         }), 500
+
+@property_bp.route("/property", methods=['PUT'])
+@jwt_required()
+def inactive_property():
+    """
+    Inactive a specified property (Admin only)
+    ---
+    security:
+      - Bearer: []
+    parameters:
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+        description: "JWT Token with 'Bearer ' prefix"
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            property_id:
+              type: integer
+              description: The ID of the property that becomes inactive
+          required:
+            - property_id
+    responses:
+      201:
+        description: Property inactive successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Propiedad eliminada exitosamente"
+      403:
+        description: Property not found
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Propiedad no encontrada"
+      500:
+        description: Server error during property deleted
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Error al eliminar la propiedad"
+            error:
+              type: string
+              description: Detailed error message
+    """
+    additional_data = get_jwt()
+    admin = additional_data.get('is_admin')
+
+    if not admin:
+        return jsonify({
+            "message": "No tienes permisos para eliminar propiedades"
+        }), 403
+
+    data = request.get_json()
+    property_id = data.get('property_id')
+
+    publication = Property.query.filter_by(id=property_id).first()
+
+    if not publication:
+      return jsonify({
+          "message": "Propiedad no encontrada"
+      }), 404
+
+    publication.status = 'inactive'
+
+    try:
+        db.session.commit()
+        return jsonify({"message": "Propiedad eliminada exitosamente"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": "Error al eliminar la propiedad", "error": str(e)}), 500

@@ -231,3 +231,84 @@ def create_publication():
             "message": "Error al crear la publicación",
             "error": str(e)
         }), 500
+
+@publication_bp.route("/publications", methods=['PUT'])
+@jwt_required()
+def inactive_publication():
+    """
+    Inactive a specified publication (Admin only)
+    ---
+    security:
+      - Bearer: []
+    parameters:
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+        description: "JWT Token with 'Bearer ' prefix"
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            publication_id:
+              type: integer
+              description: The ID of the publication that becomes inactive
+          required:
+            - publication_id
+    responses:
+      201:
+        description: Publication inactive successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Publicación eliminada exitosamente"
+      403:
+        description: Publication not found
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Publicación no encontrada"
+      500:
+        description: Server error during publication creation
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Error al eliminar la publicación"
+            error:
+              type: string
+              description: Detailed error message
+    """
+    additional_data = get_jwt()
+    admin = additional_data.get('is_admin')
+
+    if not admin:
+        return jsonify({
+            "message": "No tienes permisos para crear publicaciones"
+        }), 403
+
+    data = request.get_json()
+    publication_id = data.get('publication_id')
+
+    publication = Publication.query.filter_by(id=publication_id).first()
+
+    if not publication:
+      return jsonify({
+          "message": "Publicación no encontrada"
+      }), 404
+
+    publication.status = 'inactive'
+
+    try:
+        db.session.commit()
+        return jsonify({"message": "Publicación eliminada exitosamente"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": "Error al eliminar la publicación", "error": str(e)}), 500
