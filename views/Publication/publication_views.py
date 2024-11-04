@@ -1,13 +1,13 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import get_jwt, jwt_required
+from flask_jwt_extended import get_jwt, jwt_required, get_jwt_identity
 from app import db
 from models import Publication
-from schemas import PublicationSchema
+from schemas import PublicationSchema, MinimalPublicationSchema
 
 publication_bp = Blueprint('publication', __name__)
 
 @publication_bp.route("/publications", methods=['GET'])
-@jwt_required()
+@jwt_required(optional=True)
 def get_publications():
     """
     Retrieve a list of all publications
@@ -64,8 +64,15 @@ def get_publications():
                 type: string
                 description: The status of the publication (e.g., 'active')
     """
-    publications = db.session.query(Publication).join(Publication.property).join(Publication.image).all()
-    return PublicationSchema().dump(publications, many=True)
+
+    user_id = get_jwt_identity()
+    active_publications = db.session.query(Publication).filter_by(status='active').join(Publication.property).join(Publication.image).all()
+
+    if user_id:
+      return PublicationSchema().dump(active_publications, many=True), 200
+    else:
+      return MinimalPublicationSchema().dump(active_publications, many=True), 200
+
 
 
 @publication_bp.route("/publications", methods=['POST'])

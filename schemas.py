@@ -63,6 +63,21 @@ class PublicationSchema(ma.SQLAlchemySchema):
     property = fields.Nested(PropertySchema)
     image = fields.Nested(ImageSchema)
 
+class MinimalPublicationSchema(ma.SQLAlchemySchema):
+    class Meta:
+        model = Publication
+
+    id = fields.Int(dump_only=True)
+    property_id = fields.Int()
+    image_id = fields.Int()
+    title = fields.Str()
+    description = fields.Str()
+    publish_date = fields.Date()
+
+    # Campos relacionados
+    property = fields.Nested(PropertySchema)
+    image = fields.Nested(ImageSchema)
+
 class ContractSchema(ma.SQLAlchemySchema):
     id = fields.Int(dump_only=True)
     property_id = fields.Int(required=True)
