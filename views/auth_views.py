@@ -62,7 +62,7 @@ def login():
     if user and check_password_hash(pwhash=user.password, password=password):
         access_token = create_access_token(
             identity=username,
-            expires_delta=timedelta(minutes=100000),
+            expires_delta=timedelta(minutes=5),
             additional_claims=dict(
                 is_admin=user.is_admin,
             )
