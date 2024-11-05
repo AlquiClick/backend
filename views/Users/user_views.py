@@ -121,7 +121,7 @@ def create_user():
 
     if not admin:
         return jsonify({
-            "message": "No tienes permisos para crear propiedades"
+            "message": "No tienes permisos para crear usuarios"
         }), 403
 
     data = request.get_json()

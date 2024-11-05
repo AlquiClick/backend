@@ -62,7 +62,6 @@ def get_properties():
     properties = Property.query.all()
     return PropertySchema().dump(properties, many=True)
 
-
 @property_bp.route("/property", methods=['POST'])
 @jwt_required()
 def create_property():
