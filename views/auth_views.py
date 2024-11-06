@@ -141,13 +141,20 @@ def register():
     first_name = data.get('first_name')
     last_name = data.get('last_name')
     date_of_birth = data.get('date_of_birth')
+    role = data.get('role')
+
+    if role == 'owner':
+        is_admin = True
+    else:
+        is_admin = False
 
     passwordHash = generate_password_hash(
         password=password,
         method='pbkdf2',
         salt_length=8
     )
-
+    print(is_admin)
+    print("aaaa")
     try:
         nueva_persona = Person(
             first_name=first_name,
@@ -162,7 +169,7 @@ def register():
             username=username,
             email=email,
             password=passwordHash,
-            is_admin=True,
+            is_admin=is_admin,
             is_active=True,
             person_id=nueva_persona.id
         )
