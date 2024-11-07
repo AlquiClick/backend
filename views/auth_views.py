@@ -70,6 +70,7 @@ def login():
         return jsonify({
             "message": f'Login exitoso {username}',
             "token": f'{access_token}',
+            "user_id": f'{user.id}',
         }), 201
     else:
          return jsonify({
