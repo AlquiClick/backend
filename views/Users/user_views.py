@@ -256,3 +256,84 @@ def update_user():
          return jsonify({
             "message": 'Algo malio sal',
         }), 404
+
+@user_bp.route("/user-delete", methods=['PUT'])
+@jwt_required()
+def delete_user():
+    """
+    Deactivate an existing user (Admin only)
+    ---
+    security:
+      - Bearer: []
+    parameters:
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+        description: "JWT Token with 'Bearer ' prefix"
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            user_id:
+              type: integer
+              description: The ID of the user to deactivate
+          required:
+            - user_id
+    responses:
+      201:
+        description: User deactivated successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Usuario {username} desactiva3"
+            user_id:
+              type: integer
+              example: 1
+      403:
+        description: Unauthorized action (if not admin)
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "No tienes permisos para desactivar usuarios"
+      404:
+        description: User not found
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Algo malio sal"
+    """
+    additional_data = get_jwt()
+    admin = additional_data.get('is_admin')
+
+    if not admin:
+        return jsonify({
+            "message": "No tienes permisos para actualizar usuarios pa"
+        }), 403
+
+    data = request.get_json()
+    user_id = data.get('user_id')
+
+    user = User.query.filter_by(id=user_id).first()
+
+    if user is not None:
+        user.is_active = False
+        db.session.commit()
+
+        return jsonify({
+            "message": f'Usuario {user.username} desactiva3',
+            "user_id": f'{user.id}',
+        }), 201
+    else:
+         return jsonify({
+            "message": 'Algo malio sal',
+        }), 404
+
