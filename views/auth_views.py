@@ -70,6 +70,7 @@ def login():
         return jsonify({
             "message": f'Login exitoso {username}',
             "token": f'{access_token}',
+            "user_id": f'{user.id}',
         }), 201
     else:
          return jsonify({
@@ -107,6 +108,9 @@ def register():
               type: string
               format: date
               description: "The date of birth for the new user in format YYYY-MM-DD"
+            role:
+              type: string
+              description: "for admin, send owner"
           required:
             - username
             - email
@@ -114,6 +118,7 @@ def register():
             - first_name
             - last_name
             - date_of_birth
+            - role
     responses:
       201:
         description: User successfully created
@@ -153,8 +158,7 @@ def register():
         method='pbkdf2',
         salt_length=8
     )
-    print(is_admin)
-    print("aaaa")
+
     try:
         nueva_persona = Person(
             first_name=first_name,
