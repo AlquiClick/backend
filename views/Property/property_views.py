@@ -197,7 +197,8 @@ def create_property():
     year_built = data.get('year_built')
     property_status_id = data.get('property_status_id')
     monthly_rent = data.get('monthly_rent')
-    owner_id = data.get('owner_id')
+    # owner_id = data.get('owner_id')
+    owner_id = 1
     active = data.get('active', True)
 
     try:
@@ -227,7 +228,7 @@ def create_property():
             "error": str(e)
         }), 500
 
-@property_bp.route("/property", methods=['PUT'])
+@property_bp.route("/property", methods=['DELETE'])
 @jwt_required()
 def inactive_property():
     """
@@ -292,18 +293,170 @@ def inactive_property():
     data = request.get_json()
     property_id = data.get('property_id')
 
-    publication = Property.query.filter_by(id=property_id).first()
+    propery = Property.query.filter_by(id=property_id).first()
 
-    if not publication:
+    if not propery:
       return jsonify({
           "message": "Propiedad no encontrada"
       }), 404
 
-    publication.status = 'inactive'
-
+    propery.active = 0
+    db.session.add(propery)
     try:
         db.session.commit()
         return jsonify({"message": "Propiedad eliminada exitosamente"}), 200
     except Exception as e:
         db.session.rollback()
         return jsonify({"message": "Error al eliminar la propiedad", "error": str(e)}), 500
+
+@property_bp.route("/property", methods=['PUT'])
+@jwt_required()
+def update_property():
+    """
+    Actualiza una propiedad existente (solo para administradores)
+    ---
+    security:
+      - Bearer: []
+    parameters:
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+        description: "Token JWT con el prefijo 'Bearer '"
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            property_id:
+              type: integer
+              description: ID de la propiedad a actualizar
+            address:
+              type: string
+              description: Nueva dirección de la propiedad
+            rooms:
+              type: integer
+              description: Número de habitaciones
+            bathrooms:
+              type: integer
+              description: Número de baños
+            garage_capacity:
+              type: integer
+              description: Capacidad del garaje
+            year_built:
+              type: integer
+              description: Año de construcción
+            property_status_id:
+              type: integer
+              description: ID del estado de la propiedad
+            monthly_rent:
+              type: number
+              description: Alquiler mensual
+            owner_id:
+              type: integer
+              description: ID del propietario
+            active:
+              type: boolean
+              description: Estado de actividad de la propiedad
+          required:
+            - property_id
+    responses:
+      200:
+        description: Propiedad actualizada exitosamente
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Propiedad actualizada exitosamente"
+            property:
+              type: object
+              properties:
+                id:
+                  type: integer
+                address:
+                  type: string
+                rooms:
+                  type: integer
+                bathrooms:
+                  type: integer
+                garage_capacity:
+                  type: integer
+                year_built:
+                  type: integer
+                property_status_id:
+                  type: integer
+                monthly_rent:
+                  type: number
+                owner_id:
+                  type: integer
+                active:
+                  type: boolean
+      403:
+        description: Acción no autorizada (si no es administrador)
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "No tienes permisos para actualizar propiedades"
+      404:
+        description: Propiedad no encontrada
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Propiedad no encontrada"
+      500:
+        description: Error del servidor durante la actualización de la propiedad
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Error al actualizar la propiedad"
+            error:
+              type: string
+              description: Mensaje detallado del error
+    """
+    additional_data = get_jwt()
+    admin = additional_data.get('is_admin')
+
+    if not admin:
+        return jsonify({
+            "message": "No tienes permisos para actualizar propiedades"
+        }), 403
+
+    data = request.get_json()
+    property_id = data.get('property_id')
+
+    if not property_id:
+        return jsonify({
+            "message": "El 'property_id' es obligatorio"
+        }), 400
+
+    property = Property.query.filter_by(id=property_id).first()
+
+    if not property:
+        return jsonify({
+            "message": "Propiedad no encontrada"
+        }), 404
+
+    for key, value in data.items():
+        if key != 'property_id' and hasattr(property, key):
+            setattr(property, key, value)
+
+    try:
+        db.session.commit()
+        return jsonify({
+            "message": "Propiedad actualizada exitosamente",
+            "property": PropertySchema().dump(property)
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            "message": "Error al actualizar la propiedad",
+            "error": str(e)
+        }), 500
