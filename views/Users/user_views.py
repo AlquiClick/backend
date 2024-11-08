@@ -337,3 +337,18 @@ def delete_user():
             "message": 'Algo malio sal',
         }), 404
 
+@user_bp.route("/user-info", methods=['POST'])
+@jwt_required()
+def get_user_info():
+    data = request.get_json()
+    user_id = data.get('user_id')
+
+    if user_id is None:
+        return jsonify({"message": "User ID is required"}), 400
+
+    user = User.query.filter_by(id=user_id).first()
+
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
+    return UserSchema().dump(user)
